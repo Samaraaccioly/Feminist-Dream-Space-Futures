@@ -290,11 +290,11 @@ st.markdown("""
 
 # ─── Tabs ─────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "🃏 Cenários & Abordagens",
-    "🔺 Future Triangle",
-    "⚙️ Future Wheel",
-    "📋 Resumo",
-    "🔐 Admin",
+    "CENÁRIOS & ABORDAGENS",
+    "🔺 FUTURE TRIANGLE",
+    "⚙️ FUTURE WHEEL",
+    "SEU RESUMO",
+    "Admin",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════

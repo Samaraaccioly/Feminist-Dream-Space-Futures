@@ -337,14 +337,26 @@ with tab1:
             )
 
             if is_flipped:
-                if is_selected:
-                    if st.button("✅ Selecionada", key=f"sel_{woman['id']}"):
-                        # deselect
-                        st.session_state.selected_card = None
-                        st.rerun()
-                else:
-                    if st.button(f"Selecionar", key=f"sel_{woman['id']}"):
-                        st.session_state.selected_card = woman
+                # Cria duas colunas pequenas para os botões de ação na carta virada
+                btn_col1, btn_col2 = st.columns(2)
+                
+                with btn_col1:
+                    if is_selected:
+                        if st.button("✅ Ok", key=f"sel_{woman['id']}"):
+                            st.session_state.selected_card = None
+                            st.rerun()
+                    else:
+                        if st.button("Selecionar", key=f"sel_{woman['id']}"):
+                            st.session_state.selected_card = woman
+                            st.rerun()
+                
+                with btn_col2:
+                    if st.button("↩️ Voltar", key=f"unflip_{woman['id']}"):
+                        # Remove o ID da mulher do conjunto de cartas viradas
+                        st.session_state.flipped_cards.remove(woman["id"])
+                        # Se ela estava selecionada, deseleciona ao desvirar (opcional)
+                        if is_selected:
+                            st.session_state.selected_card = None
                         st.rerun()
             else:
                 if st.button(f"Virar carta", key=f"flip_{woman['id']}"):

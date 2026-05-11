@@ -435,7 +435,7 @@ with tab2:
             b64s = img_to_b64(CARDS_DIR / selected["scenario"])
             st.markdown(
                 f'<img src="data:image/jpeg;base64,{b64s}" '
-                f'style="width:100%;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />',
+                f'style="width:350%;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />',
                 unsafe_allow_html=True,
             )
 

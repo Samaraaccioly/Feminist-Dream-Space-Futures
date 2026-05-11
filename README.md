@@ -19,7 +19,7 @@ feminist_futures/
 ├── requirements.txt        ← dependências Python
 ├── .streamlit/
 │   ├── config.toml         ← tema e configurações
-│   └── secrets.toml        ← senha admin (NÃO suba no GitHub)
+│   └── secrets.toml        ← senha admin 
 ├── assets/
 │   └── cards/              ← imagens das cartas (portraits + scenarios)
 ├── data/
@@ -31,23 +31,7 @@ feminist_futures/
 
 ## Passo a passo: Publicar no Streamlit Cloud (GRATUITO)
 
-### 1. Instale o Git no seu computador
-
-- **Windows**: https://git-scm.com/download/win
-- **Mac**: já vem instalado (ou via `xcode-select --install`)
-
-### 2. Crie uma conta no GitHub
-
-Acesse https://github.com e crie uma conta gratuita.
-
-### 3. Crie um repositório no GitHub
-
-1. Clique em **New repository**
-2. Nome: `feminist-futures` (ou qualquer nome)
-3. Deixe **Public**
-4. Clique em **Create repository**
-
-### 4. Suba os arquivos
+### 1. Suba os arquivos
 
 Abra o terminal (ou Git Bash no Windows) na pasta do projeto e rode:
 
@@ -62,11 +46,11 @@ git push -u origin main
 
 > ⚠️ O arquivo `.streamlit/secrets.toml` está no `.gitignore` — ele **não** vai para o GitHub. Você vai configurar a senha no próximo passo.
 
-### 5. Crie uma conta no Streamlit Cloud
+### 2. Crie uma conta no Streamlit Cloud
 
 Acesse https://streamlit.io/cloud e faça login **com a sua conta do GitHub**.
 
-### 6. Publique o app
+### 3. Publique o app
 
 1. Clique em **New app**
 2. Selecione seu repositório `feminist-futures`
@@ -74,7 +58,7 @@ Acesse https://streamlit.io/cloud e faça login **com a sua conta do GitHub**.
 4. Main file path: `app.py`
 5. Clique em **Deploy**
 
-### 7. Configure a senha do admin
+### 4. Configure a senha do admin
 
 Ainda no Streamlit Cloud, vá em:
 **⚙️ Settings → Secrets** e cole:
@@ -108,8 +92,6 @@ O navegador vai abrir automaticamente em `http://localhost:8501`
 
 ## Senha do admin
 
-Por padrão a senha é `feminismo2025`.
-
 Para alterar:
 - **Localmente**: edite `.streamlit/secrets.toml`
 - **Streamlit Cloud**: edite em Settings → Secrets
@@ -124,10 +106,4 @@ As respostas ficam em `data/responses.json`. No painel admin você pode:
 - Ver detalhes de cada sessão
 
 > ⚠️ No Streamlit Cloud o arquivo `responses.json` é resetado a cada redeploy.
-> Para persistência permanente, considere usar o **Supabase** (gratuito) — me pergunte se precisar!
-
----
-
-## Dúvidas?
-
-Se travar em qualquer passo, não hesite em pedir ajuda. 💜
+> Para persistência permanente, considere usar o **Supabase** (gratuito) 

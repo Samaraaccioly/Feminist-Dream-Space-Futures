@@ -6,6 +6,7 @@ import string
 from datetime import datetime
 from pathlib import Path
 import base64
+import io
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -103,6 +104,149 @@ def img_to_b64(path: Path) -> str:
         return ""
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+
+
+# ─── PDF Generation ───────────────────────────────────────────────────────────
+def generate_pdf_summary(team, session_name, selected, approach, tri_ima, tri_foguete, tri_balanca, wh_primeira, wh_segunda, wh_terceira):
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import cm
+        from reportlab.lib import colors
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+
+        purple_dark  = colors.HexColor("#2d1b3d")
+        purple_mid   = colors.HexColor("#8b3a8b")
+        purple_light = colors.HexColor("#e8d5f0")
+        pink         = colors.HexColor("#c2559c")
+        grey         = colors.HexColor("#7a6589")
+
+        styles = getSampleStyleSheet()
+
+        title_style = ParagraphStyle("Title", parent=styles["Title"], fontSize=22, textColor=purple_dark, spaceAfter=4, fontName="Helvetica-Bold", alignment=TA_CENTER)
+        subtitle_style = ParagraphStyle("Sub", parent=styles["Normal"], fontSize=10, textColor=grey, alignment=TA_CENTER, spaceAfter=16)
+        section_title_style = ParagraphStyle("SecTitle", parent=styles["Normal"], fontSize=13, textColor=purple_dark, fontName="Helvetica-Bold", spaceBefore=14, spaceAfter=6)
+        label_style = ParagraphStyle("Label", parent=styles["Normal"], fontSize=10, textColor=purple_mid, fontName="Helvetica-Bold", spaceAfter=3)
+        body_style = ParagraphStyle("Body", parent=styles["Normal"], fontSize=10, textColor=purple_dark, spaceAfter=6, leading=14)
+        meta_style = ParagraphStyle("Meta", parent=styles["Normal"], fontSize=9, textColor=grey, alignment=TA_CENTER)
+        note_style = ParagraphStyle("note", parent=styles["Normal"], fontSize=9, textColor=grey, spaceAfter=10, leading=13)
+
+        story = []
+        story.append(Paragraph("\u2640 Future Feminist Spaces", title_style))
+        story.append(Paragraph("Resumo da Sess\u00e3o de Futuros Feministas", subtitle_style))
+        story.append(HRFlowable(width="100%", thickness=2, color=purple_mid, spaceAfter=12))
+
+        info_data = [
+            ["Time:", team or "\u2014"],
+            ["Sess\u00e3o:", session_name or "\u2014"],
+            ["Data:", datetime.now().strftime("%d/%m/%Y %H:%M")],
+        ]
+        info_table = Table(info_data, colWidths=[3*cm, 13*cm])
+        info_table.setStyle(TableStyle([
+            ("FONTNAME", (0,0), (0,-1), "Helvetica-Bold"),
+            ("FONTSIZE", (0,0), (-1,-1), 10),
+            ("TEXTCOLOR", (0,0), (0,-1), purple_mid),
+            ("TEXTCOLOR", (1,0), (1,-1), purple_dark),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+            ("TOPPADDING", (0,0), (-1,-1), 4),
+        ]))
+        story.append(info_table)
+        story.append(Spacer(1, 12))
+        story.append(HRFlowable(width="100%", thickness=1, color=purple_light, spaceAfter=12))
+
+        story.append(Paragraph("Carta Selecionada & Abordagem", section_title_style))
+        card_data = [
+            [Paragraph("<b>Mulher escolhida:</b>", label_style), Paragraph(selected["name"] if selected else "\u2014", body_style)],
+            [Paragraph("<b>Abordagem sorteada:</b>", label_style), Paragraph((approach["text"] + "<br/><i>" + approach["desc"] + "</i>") if approach else "\u2014", body_style)],
+        ]
+        card_table = Table(card_data, colWidths=[5*cm, 11*cm])
+        card_table.setStyle(TableStyle([
+            ("VALIGN", (0,0), (-1,-1), "TOP"),
+            ("BACKGROUND", (0,0), (-1,-1), colors.HexColor("#f9f0ff")),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 8),
+            ("TOPPADDING", (0,0), (-1,-1), 8),
+            ("LEFTPADDING", (0,0), (-1,-1), 10),
+            ("RIGHTPADDING", (0,0), (-1,-1), 10),
+        ]))
+        story.append(card_table)
+        story.append(Spacer(1, 14))
+
+        story.append(Paragraph("Future Triangle", section_title_style))
+        story.append(Paragraph("O Future Triangle mapeia tr\u00eas for\u00e7as que moldam o futuro: a vis\u00e3o desej\u00e1vel (IMA), as for\u00e7as presentes (FOGUETE) e as heran\u00e7as do passado (BALAN\u00c7A).", note_style))
+        tri_data = [
+            [Paragraph("IMA \u2014 Futuro Desej\u00e1vel", label_style), Paragraph("FOGUETE \u2014 Impulsos do Presente", label_style), Paragraph("BALAN\u00c7A \u2014 Peso do Passado", label_style)],
+            [Paragraph(tri_ima or "\u2014", body_style), Paragraph(tri_foguete or "\u2014", body_style), Paragraph(tri_balanca or "\u2014", body_style)],
+        ]
+        tri_table = Table(tri_data, colWidths=[5.33*cm, 5.33*cm, 5.33*cm])
+        tri_table.setStyle(TableStyle([
+            ("VALIGN", (0,0), (-1,-1), "TOP"),
+            ("BACKGROUND", (0,0), (-1,0), purple_light),
+            ("BACKGROUND", (0,1), (-1,1), colors.white),
+            ("BOX", (0,0), (-1,-1), 1, purple_light),
+            ("INNERGRID", (0,0), (-1,-1), 0.5, purple_light),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 10),
+            ("TOPPADDING", (0,0), (-1,-1), 8),
+            ("LEFTPADDING", (0,0), (-1,-1), 8),
+            ("RIGHTPADDING", (0,0), (-1,-1), 8),
+        ]))
+        story.append(tri_table)
+        story.append(Spacer(1, 14))
+
+        story.append(Paragraph("Future Wheel", section_title_style))
+        story.append(Paragraph("O Future Wheel explora impactos em ondas \u2014 cada consequ\u00eancia gera novas consequ\u00eancias.", note_style))
+        wh_data = [
+            [Paragraph("1\u00aa Ordem \u2014 Impacto Direto", label_style), Paragraph("2\u00aa Ordem \u2014 Consequ\u00eancias", label_style), Paragraph("3\u00aa Ordem \u2014 Transforma\u00e7\u00f5es", label_style)],
+            [Paragraph(wh_primeira or "\u2014", body_style), Paragraph(wh_segunda or "\u2014", body_style), Paragraph(wh_terceira or "\u2014", body_style)],
+        ]
+        wh_table = Table(wh_data, colWidths=[5.33*cm, 5.33*cm, 5.33*cm])
+        wh_table.setStyle(TableStyle([
+            ("VALIGN", (0,0), (-1,-1), "TOP"),
+            ("BACKGROUND", (0,0), (-1,0), purple_light),
+            ("BACKGROUND", (0,1), (-1,1), colors.white),
+            ("BOX", (0,0), (-1,-1), 1, purple_light),
+            ("INNERGRID", (0,0), (-1,-1), 0.5, purple_light),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 10),
+            ("TOPPADDING", (0,0), (-1,-1), 8),
+            ("LEFTPADDING", (0,0), (-1,-1), 8),
+            ("RIGHTPADDING", (0,0), (-1,-1), 8),
+        ]))
+        story.append(wh_table)
+        story.append(Spacer(1, 20))
+        story.append(HRFlowable(width="100%", thickness=1, color=purple_light, spaceAfter=8))
+        story.append(Paragraph("Gerado por Future Feminist Spaces \u2014 Um jogo de futuros poss\u00edveis: cen\u00e1rios, imagina\u00e7\u00e3o e a\u00e7\u00e3o coletiva", meta_style))
+
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.read()
+
+    except ImportError:
+        lines = [
+            "FUTURE FEMINIST SPACES",
+            "Resumo da Sessao de Futuros Feministas",
+            "=" * 50,
+            f"Time: {team}",
+            f"Sessao: {session_name}",
+            f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+            "",
+            "CARTA SELECIONADA",
+            f"Mulher: {selected['name'] if selected else '-'}",
+            f"Abordagem: {approach['text'] if approach else '-'}",
+            "",
+            "FUTURE TRIANGLE",
+            f"IMA:\n{tri_ima or '-'}",
+            f"FOGUETE:\n{tri_foguete or '-'}",
+            f"BALANCA:\n{tri_balanca or '-'}",
+            "",
+            "FUTURE WHEEL",
+            f"1a Ordem:\n{wh_primeira or '-'}",
+            f"2a Ordem:\n{wh_segunda or '-'}",
+            f"3a Ordem:\n{wh_terceira or '-'}",
+        ]
+        return "\n".join(lines).encode("utf-8")
 
 # ─── CSS ──────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -289,25 +433,22 @@ if st.session_state["mode"] == "home":
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TELA: ENTRAR NUMA SESSÃO (jogador)
+# TELA: ENTRAR NUMA SESSÃO — digitar código
 # ─────────────────────────────────────────────────────────────────────────────
 elif st.session_state["mode"] == "lobby_join":
     st.markdown('<div class="lobby-card">', unsafe_allow_html=True)
     st.markdown("""
     <div class="lobby-title">Entrar na Sessão</div>
-    <div class="lobby-subtitle">Digite o código fornecido pela facilitadora e o nome do seu time.</div>
+    <div class="lobby-subtitle">Digite o código da sessão fornecido pela facilitadora.</div>
     """, unsafe_allow_html=True)
 
     code_input = st.text_input("Código da Sessão", max_chars=6, placeholder="Ex: A3K7X2").upper().strip()
-    team_input = st.text_input("Nome do Time", max_chars=40, placeholder="Ex: Time Dandara")
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("▶ Entrar no jogo", use_container_width=True):
+        if st.button("▶ Continuar", use_container_width=True):
             if not code_input:
                 st.error("Digite o código da sessão.")
-            elif not team_input:
-                st.error("Digite o nome do time.")
             else:
                 session = get_session(code_input)
                 if not session:
@@ -315,15 +456,8 @@ elif st.session_state["mode"] == "lobby_join":
                 elif session["status"] == "finished":
                     st.error("Esta sessão já foi encerrada.")
                 else:
-                    st.session_state["game_code"] = code_input
-                    st.session_state["game_team"] = team_input
-                    st.session_state["mode"] = "playing"
-                    # Inicializa campos do jogo
-                    for key in ["flipped_cards", "selected_card", "drawn_approach",
-                                "tri_ima", "tri_foguete", "tri_balanca",
-                                "wh_primeira", "wh_segunda", "wh_terceira"]:
-                        if key not in st.session_state:
-                            st.session_state[key] = None if key in ["selected_card","drawn_approach"] else (set() if key == "flipped_cards" else "")
+                    st.session_state["pending_code"] = code_input
+                    st.session_state["mode"] = "lobby_team_choice"
                     st.rerun()
     with col2:
         if st.button("← Voltar", use_container_width=True):
@@ -331,6 +465,106 @@ elif st.session_state["mode"] == "lobby_join":
             st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TELA: ESCOLHA DE TIME — criar novo ou entrar em existente
+# ─────────────────────────────────────────────────────────────────────────────
+elif st.session_state["mode"] == "lobby_team_choice":
+    code = st.session_state.get("pending_code", "")
+    session = get_session(code)
+    existing_teams = list(session.get("teams", {}).keys()) if session else []
+
+    st.markdown(f"""
+    <div class="lobby-card">
+      <div class="lobby-title">Sessão: {session['name'] if session else code}</div>
+      <div class="lobby-subtitle">Você quer criar um novo time ou entrar em um time já existente nesta sessão?</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_new, col_existing = st.columns(2, gap="large")
+
+    with col_new:
+        st.markdown("""
+        <div style="background:white; border-radius:16px; padding:28px; text-align:center;
+             box-shadow:0 4px 20px rgba(45,27,61,0.1); border:2px solid #e8d5f0;">
+          <div style="font-size:2.5rem; margin-bottom:12px;">🆕</div>
+          <div style="font-family:'Playfair Display',serif; font-size:1.2rem; color:#2d1b3d; font-weight:700; margin-bottom:8px;">
+            Criar novo time
+          </div>
+          <div style="color:#7a6589; font-size:0.88rem;">
+            Nosso time ainda não entrou na sessão. Começar do zero.
+          </div>
+        </div>
+        <br>
+        """, unsafe_allow_html=True)
+        new_team_name = st.text_input("Nome do novo time", max_chars=40, placeholder="Ex: Time Dandara", key="new_team_input")
+        if st.button("✨ Criar e entrar", use_container_width=True, key="btn_create_team"):
+            if not new_team_name.strip():
+                st.error("Digite um nome para o time.")
+            elif new_team_name.strip() in existing_teams:
+                st.error("Já existe um time com esse nome. Escolha outro ou entre no time existente.")
+            else:
+                st.session_state["game_code"] = code
+                st.session_state["game_team"] = new_team_name.strip()
+                st.session_state["mode"] = "playing"
+                st.session_state["flipped_cards"] = set()
+                st.session_state["selected_card"] = None
+                st.session_state["drawn_approach"] = None
+                for k in ["tri_ima","tri_foguete","tri_balanca","wh_primeira","wh_segunda","wh_terceira"]:
+                    st.session_state[k] = ""
+                st.rerun()
+
+    with col_existing:
+        st.markdown("""
+        <div style="background:white; border-radius:16px; padding:28px; text-align:center;
+             box-shadow:0 4px 20px rgba(45,27,61,0.1); border:2px solid #e8d5f0;">
+          <div style="font-size:2.5rem; margin-bottom:12px;">🔁</div>
+          <div style="font-family:'Playfair Display',serif; font-size:1.2rem; color:#2d1b3d; font-weight:700; margin-bottom:8px;">
+            Entrar em time existente
+          </div>
+          <div style="color:#7a6589; font-size:0.88rem;">
+            Nosso time já está na sessão. Continuar ou rever o resumo.
+          </div>
+        </div>
+        <br>
+        """, unsafe_allow_html=True)
+        if existing_teams:
+            chosen_team = st.selectbox("Selecione seu time", existing_teams, key="existing_team_select")
+            if st.button("▶ Entrar no time", use_container_width=True, key="btn_join_team"):
+                team_record = session["teams"].get(chosen_team, {})
+                st.session_state["game_code"] = code
+                st.session_state["game_team"] = chosen_team
+                st.session_state["mode"] = "playing"
+                st.session_state["flipped_cards"] = set()
+                saved_card_name = team_record.get("selected_card")
+                st.session_state["selected_card"] = next(
+                    (w for w in WOMEN if w["name"] == saved_card_name), None
+                ) if saved_card_name else None
+                if st.session_state["selected_card"]:
+                    st.session_state["flipped_cards"].add(st.session_state["selected_card"]["id"])
+                saved_approach_text = team_record.get("approach")
+                st.session_state["drawn_approach"] = next(
+                    (a for a in APPROACHES if a["text"] == saved_approach_text), None
+                ) if saved_approach_text else None
+                tri = team_record.get("triangle", {})
+                wh  = team_record.get("wheel", {})
+                st.session_state["tri_ima"]     = tri.get("ima", "")
+                st.session_state["tri_foguete"] = tri.get("foguete", "")
+                st.session_state["tri_balanca"] = tri.get("balanca", "")
+                st.session_state["wh_primeira"] = wh.get("primeira", "")
+                st.session_state["wh_segunda"]  = wh.get("segunda", "")
+                st.session_state["wh_terceira"] = wh.get("terceira", "")
+                if team_record:
+                    st.session_state["game_submitted"] = True
+                st.rerun()
+        else:
+            st.info("Nenhum time entrou na sessão ainda. Crie o primeiro!")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("← Voltar", key="btn_back_choice"):
+        st.session_state["mode"] = "lobby_join"
+        st.rerun()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -571,9 +805,45 @@ elif st.session_state["mode"] == "playing":
           </div>
         </div>
         """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown("### 📄 Baixar Resumo em PDF")
+        st.markdown("Faça o download do resumo completo da sessão para guardar ou compartilhar com o time.")
+
+        _sel  = st.session_state.get("selected_card")
+        _app  = st.session_state.get("drawn_approach")
+        _sname = session["name"] if session else code
+
+        if st.button("🔄 Gerar PDF do resumo", key="gen_pdf"):
+            with st.spinner("Gerando PDF..."):
+                pdf_bytes = generate_pdf_summary(
+                    team, _sname, _sel, _app,
+                    st.session_state.get("tri_ima",""),
+                    st.session_state.get("tri_foguete",""),
+                    st.session_state.get("tri_balanca",""),
+                    st.session_state.get("wh_primeira",""),
+                    st.session_state.get("wh_segunda",""),
+                    st.session_state.get("wh_terceira",""),
+                )
+                st.session_state["_pdf_bytes"] = pdf_bytes
+                st.rerun()
+
+        if st.session_state.get("_pdf_bytes"):
+            _fname = f"resumo_{team.replace(' ','_')}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+            st.download_button(
+                label="⬇️ Baixar PDF agora",
+                data=st.session_state["_pdf_bytes"],
+                file_name=_fname,
+                mime="application/pdf",
+                key="dl_pdf_btn"
+            )
+            st.success("✅ PDF pronto! Clique no botão acima para baixar.")
+
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("← Sair do jogo"):
             for k in ["game_code","game_team","game_submitted","flipped_cards","selected_card",
-                      "drawn_approach","tri_ima","tri_foguete","tri_balanca","wh_primeira","wh_segunda","wh_terceira"]:
+                      "drawn_approach","tri_ima","tri_foguete","tri_balanca","wh_primeira","wh_segunda","wh_terceira",
+                      "_pdf_bytes"]:
                 st.session_state.pop(k, None)
             st.session_state["mode"] = "home"
             st.rerun()
@@ -594,12 +864,87 @@ elif st.session_state["mode"] == "playing":
     </div>
     """, unsafe_allow_html=True)
 
-    gtab1, gtab2, gtab3, gtab4 = st.tabs([
+    gtab0, gtab1, gtab2, gtab3, gtab4 = st.tabs([
+        "ℹ️ COMO JOGAR",
         "1️⃣ CARTA & ABORDAGEM",
         "2️⃣ FUTURE TRIANGLE",
         "3️⃣ FUTURE WHEEL",
         "4️⃣ ENVIAR",
     ])
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # GAME TAB 0: Como Jogar
+    # ══════════════════════════════════════════════════════════════════════════
+    with gtab0:
+        st.markdown("""
+        <div style="text-align:center; padding: 20px 0 10px;">
+          <div style="font-family:'Playfair Display',serif; font-size:2rem; color:#2d1b3d; margin-bottom:6px;">
+            Como Funciona o Jogo
+          </div>
+          <div style="color:#7a6589; font-size:1rem; max-width:700px; margin:0 auto;">
+            Future Feminist Spaces é um jogo de exploração coletiva de futuros possíveis para as mulheres.
+            Cada time passa por 4 etapas, guiadas pelo cenário de uma mulher histórica e uma abordagem criativa.
+          </div>
+        </div>
+        <br>
+        """, unsafe_allow_html=True)
+
+        steps_howto = [
+            ("1️⃣", "Escolha uma Carta",
+             "Cada carta representa uma mulher histórica e traz um <b>cenário de futuro</b>. "
+             "Vire as cartas para revelar os cenários e, em equipe, escolha <b>uma carta</b> para explorar."),
+            ("2️⃣", "Sorteie uma Abordagem",
+             "A abordagem define <b>como</b> o time vai apresentar o cenário. Pode ser uma notícia, "
+             "uma fofoca de elevador, um manual para crianças... Sorteie e abrace o desafio!"),
+            ("3️⃣", "Future Triangle",
+             "Mapeiem três forças que moldam o futuro:<br>"
+             "<b>🧲 IMA</b> — A visão desejável que nos puxa para frente.<br>"
+             "<b>🚀 FOGUETE</b> — O que no presente já empurra nessa direção.<br>"
+             "<b>⚖️ BALANÇA</b> — O peso do passado que ainda influencia o cenário."),
+            ("4️⃣", "Future Wheel",
+             "Explore os impactos em ondas a partir do cenário:<br>"
+             "<b>1ª Ordem</b> — Os efeitos diretos e imediatos.<br>"
+             "<b>2ª Ordem</b> — As consequências das consequências.<br>"
+             "<b>3ª Ordem</b> — Transformações profundas e sistêmicas de longo prazo."),
+            ("5️⃣", "Enviar & Baixar PDF",
+             "Revise as respostas do time e <b>envie</b> para a facilitadora. "
+             "Você também poderá <b>baixar um PDF</b> com todo o resumo da discussão — "
+             "ótimo para guardar ou compartilhar com o time!"),
+        ]
+
+        for i in range(0, len(steps_howto), 2):
+            row_cols = st.columns(min(2, len(steps_howto)-i))
+            for j, col in enumerate(row_cols):
+                idx = i + j
+                if idx < len(steps_howto):
+                    num, title, desc = steps_howto[idx]
+                    with col:
+                        st.markdown(f"""
+                        <div style="background:white; border-radius:16px; padding:20px;
+                             box-shadow:0 4px 20px rgba(45,27,61,0.1); border-top:4px solid #8b3a8b; height:100%;">
+                          <div style="font-family:'Playfair Display',serif; font-size:2.2rem; color:#e8d5f0; font-weight:700; line-height:1;">{num}</div>
+                          <div style="font-family:'Playfair Display',serif; font-size:1.1rem; color:#2d1b3d; font-weight:700; margin-bottom:6px;">{title}</div>
+                          <div style="color:#7a6589; font-size:0.88rem; line-height:1.5;">{desc}</div>
+                        </div>
+                        <br>
+                        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #2d1b3d, #6b3578); border-radius:16px; padding:28px; margin-top:8px;">
+          <div style="font-family:'Playfair Display',serif; font-size:1.3rem; color:white; margin-bottom:12px;">
+            💡 Dicas para uma boa sessão
+          </div>
+          <ul style="color:#e8d5f0; font-size:0.92rem; line-height:1.9; margin:0; padding-left:20px;">
+            <li>Não existe resposta certa ou errada — o objetivo é <b>imaginar coletivamente</b>.</li>
+            <li>Ouçam todas as vozes do time antes de chegar a um consenso.</li>
+            <li>Usem a abordagem sorteada como guia criativo para a discussão!</li>
+            <li>O Future Triangle e o Future Wheel são ferramentas de <b>pensamento sistêmico</b> — conectem as ideias.</li>
+          </ul>
+        </div>
+        <br>
+        """, unsafe_allow_html=True)
+
+        st.info("📌 Quando estiver pronto(a), avance para a aba **1️⃣ CARTA & ABORDAGEM** para começar!")
 
     # ══════════════════════════════════════════════════════════════════════════
     # GAME TAB 1: Carta & Abordagem

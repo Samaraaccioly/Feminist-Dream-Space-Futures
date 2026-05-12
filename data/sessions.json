@@ -1,0 +1,44 @@
+{
+  "HKQ8TZ": {
+    "code": "HKQ8TZ",
+    "name": "Design",
+    "created_at": "2026-05-11T21:17:20.718819",
+    "status": "waiting",
+    "teams": {}
+  },
+  "KTGPPR": {
+    "code": "KTGPPR",
+    "name": "Design",
+    "created_at": "2026-05-11T21:17:21.496448",
+    "status": "waiting",
+    "teams": {}
+  },
+  "TCNNLL": {
+    "code": "TCNNLL",
+    "name": "recife",
+    "created_at": "2026-05-11T21:19:59.952728",
+    "status": "waiting",
+    "teams": {}
+  },
+  "3NR6QB": {
+    "code": "3NR6QB",
+    "name": "rural",
+    "created_at": "2026-05-11T21:21:17.314200",
+    "status": "waiting",
+    "teams": {}
+  },
+  "J216J5": {
+    "code": "J216J5",
+    "name": "dc",
+    "created_at": "2026-05-11T21:23:11.940320",
+    "status": "waiting",
+    "teams": {}
+  },
+  "UCNPPG": {
+    "code": "UCNPPG",
+    "name": "dc recife",
+    "created_at": "2026-05-11T21:25:29.878506",
+    "status": "waiting",
+    "teams": {}
+  }
+}

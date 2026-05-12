@@ -413,7 +413,7 @@ with tab2:
         st.info("⬅️ Primeiro escolha uma carta na aba **Cenários & Abordagens**.")
     else:
         # Show context
-        ctx_col1, ctx_col2 = st.columns([1, 3])
+        ctx_col1, ctx_col2 = st.columns([1, 2])
         with ctx_col1:
             b64 = img_to_b64(CARDS_DIR / selected["portrait"])
             st.markdown(
@@ -435,7 +435,7 @@ with tab2:
             b64s = img_to_b64(CARDS_DIR / selected["scenario"])
             st.markdown(
                 f'<img src="data:image/jpeg;base64,{b64s}" '
-                f'style="width:350%;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />',
+                f'style="width:50%;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />',
                 unsafe_allow_html=True,
             )
 
@@ -529,7 +529,7 @@ with tab3:
         )
     else:
         st.markdown(
-            '<div style="width:100%;background:linear-gradient(135deg,#2d1b3d,#6b3578,#c2559c);'
+            '<div style="width:200%;background:linear-gradient(135deg,#2d1b3d,#6b3578,#c2559c);'
             'border-radius:12px;padding:40px 32px;margin-bottom:28px;text-align:center;">'
             '<p style="color:#f0e0fa;font-size:0.9rem;margin:0;font-style:italic;">'
             '« A liberdade não é dada — ela é conquistada. »'
@@ -540,7 +540,7 @@ with tab3:
     if not selected:
         st.info("⬅️ Primeiro escolha uma carta na aba **Cenários & Abordagens**.")
     else:
-        ctx_col1, ctx_col2 = st.columns([1, 3])
+        ctx_col1, ctx_col2 = st.columns([1, 2])
         with ctx_col1:
             b64 = img_to_b64(CARDS_DIR / selected["portrait"])
             st.markdown(
@@ -562,7 +562,7 @@ with tab3:
             b64s = img_to_b64(CARDS_DIR / selected["scenario"])
             st.markdown(
                 f'<img src="data:image/jpeg;base64,{b64s}" '
-                f'style="width:100%;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />',
+                f'style="width:50%;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />',
                 unsafe_allow_html=True,
             )
 

@@ -108,4 +108,5 @@ As respostas ficam em `data/responses.json`. No painel admin você pode:
 > ⚠️ No Streamlit Cloud o arquivo `responses.json` é resetado a cada redeploy.
 > Para persistência permanente, considere usar o **Supabase** (gratuito)
 >
-> site: https://feminist-dream-space-futures-5rvc5wi88rwdyun3jehfgv.streamlit.app/ 
+
+site: https://feminist-dream-space-futures-5rvc5wi88rwdyun3jehfgv.streamlit.app/ 

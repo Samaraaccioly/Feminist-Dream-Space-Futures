@@ -408,7 +408,7 @@ if "mode" not in st.session_state:
 # ─────────────────────────────────────────────────────────────────────────────
 if st.session_state["mode"] == "home":
     st.markdown("""
-    <div class="lobby-card">
+    <div style="text-align:center; margin-bottom: 28px;">
       <div class="lobby-title">Bem-vinda(o) ao Jogo</div>
       <div class="lobby-subtitle">
           Escolha como você quer participar desta sessão de futuros feministas.

@@ -65,5 +65,31 @@
         }
       }
     }
+  },
+  "NLNDK7": {
+    "code": "NLNDK7",
+    "name": "sessão teste 001",
+    "created_at": "2026-05-12T21:26:23.928609",
+    "status": "waiting",
+    "teams": {
+      "time teste": {
+        "team": "time teste",
+        "session_code": "NLNDK7",
+        "timestamp": "2026-05-12T21:27:23.834487",
+        "selected_card": "Greta Thunberg",
+        "approach": null,
+        "triangle": {
+          "ima": "a",
+          "foguete": "b",
+          "balanca": "c"
+        },
+        "wheel": {
+          "primeira": "a",
+          "segunda": "b",
+          "terceira": "c"
+        }
+      },
+      "teste 02": {}
+    }
   }
 }

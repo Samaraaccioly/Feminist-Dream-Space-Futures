@@ -85,6 +85,16 @@ def get_session(code: str):
     sessions = load_sessions()
     return sessions.get(code.upper())
 
+def register_team(code: str, team: str):
+    """Register a team name in the session as soon as it's created, even before any response."""
+    sessions = load_sessions()
+    if code not in sessions:
+        return False
+    if team not in sessions[code]["teams"]:
+        sessions[code]["teams"][team] = {}
+    save_sessions(sessions)
+    return True
+
 def save_team_response(code: str, team: str, record: dict):
     sessions = load_sessions()
     if code not in sessions:
@@ -346,6 +356,16 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 .status-playing { color: #10b981; font-weight: 700; }
 .status-finished { color: #6b7280; font-weight: 700; }
 
+/* Hide empty label wrappers that cause phantom rectangles */
+.stTextArea [data-baseweb="label"],
+.stTextArea label,
+div[data-testid="stTextAreaRootElement"] > label {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 /* Progress bar */
 .progress-bar-wrapper {
     background: #e8d5f0; border-radius: 999px; height: 10px;
@@ -387,14 +407,14 @@ if "mode" not in st.session_state:
 # TELA: HOME
 # ─────────────────────────────────────────────────────────────────────────────
 if st.session_state["mode"] == "home":
-    st.markdown('<div class="lobby-card">', unsafe_allow_html=True)
     st.markdown("""
-    <div class="lobby-title">Bem-vinda(o) ao Jogo</div>
-    <div class="lobby-subtitle">
-        Escolha como você quer participar desta sessão de futuros feministas.
+    <div class="lobby-card">
+      <div class="lobby-title">Bem-vinda(o) ao Jogo</div>
+      <div class="lobby-subtitle">
+          Escolha como você quer participar desta sessão de futuros feministas.
+      </div>
     </div>
     """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     col_a, col_b = st.columns(2, gap="large")
     with col_a:
@@ -436,10 +456,11 @@ if st.session_state["mode"] == "home":
 # TELA: ENTRAR NUMA SESSÃO — digitar código
 # ─────────────────────────────────────────────────────────────────────────────
 elif st.session_state["mode"] == "lobby_join":
-    st.markdown('<div class="lobby-card">', unsafe_allow_html=True)
     st.markdown("""
-    <div class="lobby-title">Entrar na Sessão</div>
-    <div class="lobby-subtitle">Digite o código da sessão fornecido pela facilitadora.</div>
+    <div class="lobby-card">
+      <div class="lobby-title">Entrar na Sessão</div>
+      <div class="lobby-subtitle">Digite o código da sessão fornecido pela facilitadora.</div>
+    </div>
     """, unsafe_allow_html=True)
 
     code_input = st.text_input("Código da Sessão", max_chars=6, placeholder="Ex: A3K7X2").upper().strip()
@@ -463,8 +484,6 @@ elif st.session_state["mode"] == "lobby_join":
         if st.button("← Voltar", use_container_width=True):
             st.session_state["mode"] = "home"
             st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -507,6 +526,7 @@ elif st.session_state["mode"] == "lobby_team_choice":
             else:
                 st.session_state["game_code"] = code
                 st.session_state["game_team"] = new_team_name.strip()
+                register_team(code, new_team_name.strip())
                 st.session_state["mode"] = "playing"
                 st.session_state["flipped_cards"] = set()
                 st.session_state["selected_card"] = None
@@ -555,8 +575,11 @@ elif st.session_state["mode"] == "lobby_team_choice":
                 st.session_state["wh_primeira"] = wh.get("primeira", "")
                 st.session_state["wh_segunda"]  = wh.get("segunda", "")
                 st.session_state["wh_terceira"] = wh.get("terceira", "")
-                if team_record:
+                # Only mark as submitted if the record has actual response data (not just an empty registration)
+                if team_record and team_record.get("selected_card"):
                     st.session_state["game_submitted"] = True
+                else:
+                    st.session_state["game_submitted"] = False
                 st.rerun()
         else:
             st.info("Nenhum time entrou na sessão ainda. Crie o primeiro!")
@@ -576,9 +599,12 @@ elif st.session_state["mode"] in ("admin_create", "admin_view"):
         st.session_state.admin_auth = False
 
     if not st.session_state.admin_auth:
-        st.markdown('<div class="lobby-card">', unsafe_allow_html=True)
-        st.markdown('<div class="lobby-title">🔐 Painel da Admin</div>', unsafe_allow_html=True)
-        st.markdown('<div class="lobby-subtitle">Acesso restrito à facilitadora.</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="lobby-card">
+          <div class="lobby-title">🔐 Painel da Admin</div>
+          <div class="lobby-subtitle">Acesso restrito à facilitadora.</div>
+        </div>
+        """, unsafe_allow_html=True)
         pwd = st.text_input("Senha:", type="password")
         col1, col2 = st.columns(2)
         with col1:
@@ -592,7 +618,6 @@ elif st.session_state["mode"] in ("admin_create", "admin_view"):
             if st.button("← Voltar", use_container_width=True):
                 st.session_state["mode"] = "home"
                 st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
     else:
         # Admin autenticada — tabs admin
@@ -1137,8 +1162,11 @@ elif st.session_state["mode"] == "playing":
             # Carta
             r1, r2 = st.columns(2)
             with r1:
-                st.markdown('<div class="summary-section">', unsafe_allow_html=True)
-                st.markdown('<div class="summary-title">🃏 Carta Selecionada</div>', unsafe_allow_html=True)
+                st.markdown("""<div style="background:white;border-radius:16px;padding:20px;
+                    margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.07);
+                    border-left:5px solid #8b3a8b;">
+                  <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#2d1b3d;margin-bottom:10px;">🃏 Carta Selecionada</div>""",
+                    unsafe_allow_html=True)
                 b64p = img_to_b64(CARDS_DIR / selected["portrait"])
                 b64s = img_to_b64(CARDS_DIR / selected["scenario"])
                 pc1, pc2 = st.columns(2)
@@ -1146,20 +1174,22 @@ elif st.session_state["mode"] == "playing":
                     if b64p: st.markdown(f'<img src="data:image/jpeg;base64,{b64p}" style="width:100%;border-radius:8px;"/>', unsafe_allow_html=True)
                 with pc2:
                     if b64s: st.markdown(f'<img src="data:image/jpeg;base64,{b64s}" style="width:100%;border-radius:8px;"/>', unsafe_allow_html=True)
-                st.markdown(f'<p style="text-align:center;font-weight:700;color:#2d1b3d;margin-top:6px;">{selected["name"]}</p>', unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown(f'<p style="text-align:center;font-weight:700;color:#2d1b3d;margin-top:6px;">{selected["name"]}</p></div>', unsafe_allow_html=True)
             with r2:
-                st.markdown('<div class="summary-section">', unsafe_allow_html=True)
-                st.markdown('<div class="summary-title">🎲 Abordagem Sorteada</div>', unsafe_allow_html=True)
-                if approach:
-                    st.markdown(f'<div class="approach-pill">✦ {approach["text"]}<br><span style="font-size:0.82rem;font-weight:400;opacity:0.9;">{approach["desc"]}</span></div>', unsafe_allow_html=True)
-                else:
-                    st.markdown("_Nenhuma abordagem sorteada._")
-                st.markdown('</div>', unsafe_allow_html=True)
+                approach_html = f'<div class="approach-pill">✦ {approach["text"]}<br><span style="font-size:0.82rem;font-weight:400;opacity:0.9;">{approach["desc"]}</span></div>' if approach else "<em>Nenhuma abordagem sorteada.</em>"
+                st.markdown(f"""<div style="background:white;border-radius:16px;padding:20px;
+                    margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.07);
+                    border-left:5px solid #8b3a8b;">
+                  <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#2d1b3d;margin-bottom:10px;">🎲 Abordagem Sorteada</div>
+                  {approach_html}
+                </div>""", unsafe_allow_html=True)
 
             # Triangle
-            st.markdown('<div class="summary-section">', unsafe_allow_html=True)
-            st.markdown('<div class="summary-title">🔺 Future Triangle</div>', unsafe_allow_html=True)
+            st.markdown("""<div style="background:white;border-radius:16px;padding:20px;
+                margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.07);
+                border-left:5px solid #8b3a8b;">
+              <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#2d1b3d;margin-bottom:10px;">🔺 Future Triangle</div>
+            </div>""", unsafe_allow_html=True)
             sc1, sc2, sc3 = st.columns(3)
             with sc1:
                 st.markdown("**🧲 IMA**"); st.markdown(st.session_state.get("tri_ima") or "_vazio_")
@@ -1167,11 +1197,13 @@ elif st.session_state["mode"] == "playing":
                 st.markdown("**🚀 FOGUETE**"); st.markdown(st.session_state.get("tri_foguete") or "_vazio_")
             with sc3:
                 st.markdown("**⚖️ BALANÇA**"); st.markdown(st.session_state.get("tri_balanca") or "_vazio_")
-            st.markdown('</div>', unsafe_allow_html=True)
 
             # Wheel
-            st.markdown('<div class="summary-section">', unsafe_allow_html=True)
-            st.markdown('<div class="summary-title">⚙️ Future Wheel</div>', unsafe_allow_html=True)
+            st.markdown("""<div style="background:white;border-radius:16px;padding:20px;
+                margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.07);
+                border-left:5px solid #8b3a8b;">
+              <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#2d1b3d;margin-bottom:10px;">⚙️ Future Wheel</div>
+            </div>""", unsafe_allow_html=True)
             sw1, sw2, sw3 = st.columns(3)
             with sw1:
                 st.markdown("**1️⃣ 1ª Ordem**"); st.markdown(st.session_state.get("wh_primeira") or "_vazio_")
@@ -1179,7 +1211,6 @@ elif st.session_state["mode"] == "playing":
                 st.markdown("**2️⃣ 2ª Ordem**"); st.markdown(st.session_state.get("wh_segunda") or "_vazio_")
             with sw3:
                 st.markdown("**3️⃣ 3ª Ordem**"); st.markdown(st.session_state.get("wh_terceira") or "_vazio_")
-            st.markdown('</div>', unsafe_allow_html=True)
 
             st.markdown("---")
             st.markdown("### Pronto para enviar?")

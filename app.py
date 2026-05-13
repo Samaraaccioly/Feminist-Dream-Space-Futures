@@ -495,7 +495,7 @@ elif st.session_state["mode"] == "lobby_team_choice":
     existing_teams = list(session.get("teams", {}).keys()) if session else []
 
     st.markdown(f"""
-    <div class="lobby-card">
+    <div style="text-align:center; margin-bottom: 28px;">
       <div class="lobby-title">Sessão: {session['name'] if session else code}</div>
       <div class="lobby-subtitle">Você quer criar um novo time ou entrar em um time já existente nesta sessão?</div>
     </div>

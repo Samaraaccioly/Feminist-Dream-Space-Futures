@@ -814,6 +814,8 @@ elif st.session_state["mode"] == "playing":
         st.session_state["flipped_cards"] = set()
     if "game_submitted" not in st.session_state:
         st.session_state["game_submitted"] = False
+    if "active_tab" not in st.session_state:
+        st.session_state["active_tab"] = 0
 
     if st.session_state.get("game_submitted"):
         st.balloons()
@@ -874,8 +876,7 @@ elif st.session_state["mode"] == "playing":
             st.rerun()
         st.stop()
 
-    # ── TABS DO JOGO ──
-    # Progresso
+    # ── NAVEGACAO DO JOGO ──
     selected = st.session_state.get("selected_card")
     approach = st.session_state.get("drawn_approach")
     tri_done = any([st.session_state.get("tri_ima"), st.session_state.get("tri_foguete"), st.session_state.get("tri_balanca")])
@@ -889,18 +890,57 @@ elif st.session_state["mode"] == "playing":
     </div>
     """, unsafe_allow_html=True)
 
-    gtab0, gtab1, gtab2, gtab3, gtab4 = st.tabs([
+    TAB_LABELS = [
         "ℹ️ COMO JOGAR",
-        "1️⃣ CARTA & ABORDAGEM",
-        "2️⃣ FUTURE TRIANGLE",
-        "3️⃣ FUTURE WHEEL",
+        "1️⃣ CARTA",
+        "2️⃣ TRIANGLE",
+        "3️⃣ WHEEL",
         "4️⃣ ENVIAR",
-    ])
+    ]
+
+    if "active_tab" not in st.session_state:
+        st.session_state["active_tab"] = 0
+
+    # Barra de abas customizada
+    tab_cols = st.columns(len(TAB_LABELS))
+    for i, label in enumerate(TAB_LABELS):
+        with tab_cols[i]:
+            is_active = st.session_state["active_tab"] == i
+            btn_style = "primary" if is_active else "secondary"
+            if st.button(label, key=f"tab_btn_{i}", use_container_width=True, type=btn_style):
+                st.session_state["active_tab"] = i
+                st.rerun()
+
+    st.markdown("<div style='border-bottom: 2px solid #e8d5f0; margin-bottom: 24px;'></div>", unsafe_allow_html=True)
+
+    current_tab = st.session_state["active_tab"]
+
+    # Helper: botoes de navegacao
+    def nav_buttons():
+        idx = st.session_state["active_tab"]
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<hr style='border-color:#e8d5f0; margin: 8px 0 16px'>", unsafe_allow_html=True)
+        btn_cols = st.columns([1, 4, 1])
+        with btn_cols[0]:
+            if idx > 0:
+                prev_label = TAB_LABELS[idx - 1]
+                if st.button(f"← {prev_label}", key=f"nav_back_{idx}", use_container_width=True):
+                    st.session_state["active_tab"] = idx - 1
+                    st.rerun()
+        with btn_cols[2]:
+            if idx < len(TAB_LABELS) - 1:
+                next_label = TAB_LABELS[idx + 1]
+                if st.button(f"{next_label} →", key=f"nav_fwd_{idx}", use_container_width=True):
+                    st.session_state["active_tab"] = idx + 1
+                    st.rerun()
+
+    # Controle de qual "aba" renderizar
+    show_tab = [current_tab == i for i in range(5)]
 
     # ══════════════════════════════════════════════════════════════════════════
     # GAME TAB 0: Como Jogar
     # ══════════════════════════════════════════════════════════════════════════
-    with gtab0:
+    if show_tab[0]:
         st.markdown("""
         <div style="text-align:center; padding: 20px 0 10px;">
           <div style="font-family:'Playfair Display',serif; font-size:2rem; color:#2d1b3d; margin-bottom:6px;">
@@ -970,11 +1010,12 @@ elif st.session_state["mode"] == "playing":
         """, unsafe_allow_html=True)
 
         st.info("📌 Quando estiver pronto(a), avance para a aba **1️⃣ CARTA & ABORDAGEM** para começar!")
+        nav_buttons()
 
     # ══════════════════════════════════════════════════════════════════════════
     # GAME TAB 1: Carta & Abordagem
     # ══════════════════════════════════════════════════════════════════════════
-    with gtab1:
+    if show_tab[1]:
         st.markdown('<div class="section-title">Escolha uma Carta</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-subtitle">Clique em "Virar carta" para revelar o cenário futuro de cada mulher. Escolha uma para seu time explorar.</div>', unsafe_allow_html=True)
 
@@ -1056,13 +1097,15 @@ elif st.session_state["mode"] == "playing":
             st.info("Agora sorteie uma abordagem para continuar!")
         elif approach:
             st.info("Agora selecione uma carta para continuar!")
+        nav_buttons()
 
     # ══════════════════════════════════════════════════════════════════════════
     # GAME TAB 2: Future Triangle
     # ══════════════════════════════════════════════════════════════════════════
-    with gtab2:
+    if show_tab[2]:
         if not selected:
             st.info("⬅️ Primeiro escolha uma carta na aba **Carta & Abordagem**.")
+            nav_buttons()
         else:
             ctx1, ctx2 = st.columns([1, 3])
             with ctx1:
@@ -1102,13 +1145,15 @@ elif st.session_state["mode"] == "playing":
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("💾 Salvar Triangle e continuar", key="save_tri"):
                 st.success("Triangle salvo! Avance para o **Future Wheel**.")
+            nav_buttons()
 
     # ══════════════════════════════════════════════════════════════════════════
     # GAME TAB 3: Future Wheel
     # ══════════════════════════════════════════════════════════════════════════
-    with gtab3:
+    if show_tab[3]:
         if not selected:
             st.info("⬅️ Primeiro escolha uma carta na aba **Carta & Abordagem**.")
+            nav_buttons()
         else:
             ctx1, ctx2 = st.columns([1,3])
             with ctx1:
@@ -1148,16 +1193,18 @@ elif st.session_state["mode"] == "playing":
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("💾 Salvar Wheel e continuar", key="save_wh"):
                 st.success("Wheel salvo! Avance para **Enviar** e finalize.")
+            nav_buttons()
 
     # ══════════════════════════════════════════════════════════════════════════
     # GAME TAB 4: Enviar
     # ══════════════════════════════════════════════════════════════════════════
-    with gtab4:
+    if show_tab[4]:
         st.markdown('<div class="section-title">Resumo & Envio</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-subtitle">Revise as respostas do time antes de enviar para a facilitadora.</div>', unsafe_allow_html=True)
 
         if not selected:
             st.warning("⚠️ Você ainda não escolheu uma carta. Volte para a aba 1.")
+            nav_buttons()
         else:
             # Carta
             r1, r2 = st.columns(2)
@@ -1240,4 +1287,5 @@ elif st.session_state["mode"] == "playing":
                     st.rerun()
                 else:
                     st.error("Erro ao salvar. Verifique se o código da sessão ainda é válido.")
+            nav_buttons()
 

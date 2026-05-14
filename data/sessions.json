@@ -105,5 +105,39 @@
     "created_at": "2026-05-12T21:50:35.245241",
     "status": "waiting",
     "teams": {}
+  },
+  "WCHJDB": {
+    "code": "WCHJDB",
+    "name": "testando",
+    "created_at": "2026-05-13T22:51:12.117346",
+    "status": "waiting",
+    "teams": {
+      "time teste": {}
+    }
+  },
+  "Z2KJLD": {
+    "code": "Z2KJLD",
+    "name": "testando 01",
+    "created_at": "2026-05-13T22:55:49.091482",
+    "status": "waiting",
+    "teams": {
+      "testando time": {
+        "team": "testando time",
+        "session_code": "Z2KJLD",
+        "timestamp": "2026-05-13T22:56:42.467334",
+        "selected_card": "Anita Garibaldi",
+        "approach": "Explique como se fosse uma fofoca de elevador",
+        "triangle": {
+          "ima": "",
+          "foguete": "",
+          "balanca": ""
+        },
+        "wheel": {
+          "primeira": "",
+          "segunda": "",
+          "terceira": ""
+        }
+      }
+    }
   }
 }
